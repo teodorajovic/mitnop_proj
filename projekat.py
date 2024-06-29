@@ -29,7 +29,7 @@ movies = movies[movies['genres'] != '(no genres listed)']
 movies['title'] = movies['title'].str.replace('"', '')
 
 print(movies.head())
-
+movies = movies.head(1555) 
 movies['genres'] = movies['genres'].apply(lambda x: x.split('|'))
 
 ml = MultiLabelBinarizer()
@@ -197,10 +197,42 @@ plt.xlabel('Žanr')
 plt.ylabel('Broj filmova')
 plt.show()
 
+#balansiranje T
+genres_movies = [genre for sublist in movies.drop(columns=['title']).values for genre in sublist if genre == 1]
+genres_count_movies = Counter(genres_movies)
+print(genres_count_movies)
+
+max_genre_count_movies = max(genres_count_movies.values())
+
+balanced_data_movies = []
+for genre in mlb.classes_:
+    samples = movies[movies[genre] == 1]
+    count = len(samples)
+    if count < max_genre_count_movies:
+        samples = resample(samples, replace=True, n_samples=max_genre_count_movies, random_state=42)
+    balanced_data_movies.append(samples)
+
+balanced_movies = pd.concat(balanced_data_movies).reset_index(drop=True)
+
+balanced_genres_movies = [genre for sublist in balanced_movies.drop(columns=['title']).values for genre in sublist if genre == 1]
+balanced_genres_count_movies = Counter(balanced_genres_movies)
+print("Distribucija žanrova nakon balansiranja:")
+print(balanced_genres_count_movies)
+
+# Plot balanced genre distribution for movies
+genre_counts_balanced_movies = balanced_movies.drop(columns=['title']).sum()
+
+plt.figure(figsize=(10, 8))
+genre_counts_balanced_movies.plot(kind='bar')
+plt.title('Raspodela žanrova nakon balansiranja (movies)')
+plt.xlabel('Žanr')
+plt.ylabel('Broj filmova')
+plt.show()
+
 # %% tokenizacija
 tokenizer = Tokenizer(num_words=5000, lower=True, split=' ')
-tokenizer.fit_on_texts(movies['title'].values)
-x = tokenizer.texts_to_sequences(movies['title'].values)
+tokenizer.fit_on_texts(balanced_movies['title'].values)
+x = tokenizer.texts_to_sequences(balanced_movies['title'].values)
 x = pad_sequences(x)
 
 # %% Priprema podataka
@@ -216,7 +248,7 @@ X_test = scaler.transform(X_test)
 
 
 
-y = movies.drop(columns=['title']).values
+y = balanced_movies.drop(columns=['title']).values
 
 x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=seed)
 
@@ -256,7 +288,7 @@ rnn.summary()
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)
 
-history = rnn.fit(x_train, y_train, epochs=20, batch_size=256, validation_data=(x_val, y_val), callbacks=[early_stopping], verbose=2)
+history = rnn.fit(x_train, y_train, epochs=10, batch_size=256, validation_data=(x_val, y_val), callbacks=[early_stopping])
 
 
 # %% evaluation 
@@ -301,10 +333,10 @@ plt.show()
 # %% predikcija
 naslov_filma = "vampire"
 seq = tokenizer.texts_to_sequences([naslov_filma])
-padded = pad_sequences(seq, maxlen=X.shape[1])
-pred = rnn.predict(padded)
+padded = pad_sequences(seq, maxlen=x.shape[1])
+pred = rnn.predict(padded,verbose=0)
 top_indices = pred[0].argsort()[-3:][::-1]
-pred_genres = [mlb.classes_[i] for i in top_indices if pred[0][i] > 0.2]
+pred_genres = [ml.classes_[i] for i in top_indices if pred[0][i] > 0.2]
 print(f"Za naslov '{naslov_filma}', predviđeni žanr(i) su: {pred_genres}")
 
 
@@ -326,10 +358,10 @@ example_titles = ["romantic",
 
 for title in example_titles:
     seq = tokenizer.texts_to_sequences([title])
-    padded = pad_sequences(seq, maxlen=X.shape[1])
+    padded = pad_sequences(seq, maxlen=x.shape[1])
     pred = rnn.predict(padded,verbose=0)
     top_indices = pred[0].argsort()[-3:][::-1]
-    pred_genres = [mlb.classes_[i] for i in top_indices if pred[0][i] > 0.2]
+    pred_genres = [ml.classes_[i] for i in top_indices if pred[0][i] > 0.2]
     
     print(f"Za naslov '{title}', predviđeni žanr(i) su: {pred_genres}\n")
 
