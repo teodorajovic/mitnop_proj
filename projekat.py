@@ -218,7 +218,7 @@ X_test = scaler.transform(X_test)
 
 y = movies.drop(columns=['title']).values
 
-x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=42)
+x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=seed)
 
 print(x_train.shape, x_val.shape, y_train.shape, y_val.shape)
 
@@ -254,7 +254,7 @@ rnn.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 rnn.build(input_shape=(None, x.shape[1]))
 rnn.summary()
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)
 
 history = rnn.fit(x_train, y_train, epochs=20, batch_size=256, validation_data=(x_val, y_val), callbacks=[early_stopping], verbose=2)
 
@@ -299,29 +299,39 @@ plt.show()
 
 
 # %% predikcija
-def predikcija_zanra(naslov):
-    seq = tokenizer.texts_to_sequences([naslov])
-    padded = pad_sequences(seq, maxlen=x.shape[1])
-    pred = rnn.predict(padded)
-    top_indices = pred[0].argsort()[-3:][::-1]
-    pred_genres = [ml.classes_[i] for i in top_indices if pred[0][i] > 0.2]
-    return pred_genres
-
 naslov_filma = "vampire"
-predikcija = predikcija_zanra(naslov_filma)
-print(f"Za naslov '{naslov_filma}', predviđeni žanr(i) su: {predikcija}")
+seq = tokenizer.texts_to_sequences([naslov_filma])
+padded = pad_sequences(seq, maxlen=X.shape[1])
+pred = rnn.predict(padded)
+top_indices = pred[0].argsort()[-3:][::-1]
+pred_genres = [mlb.classes_[i] for i in top_indices if pred[0][i] > 0.2]
+print(f"Za naslov '{naslov_filma}', predviđeni žanr(i) su: {pred_genres}")
+
 
 # %% additional info
 
 #print(mlb.classes_)
 #print(movies.head())
 
-example_titles = ["romantic", "adventure time", "money" , "mafia",
-                  "space", "war documentary","Toy Story", "blood","love","relationship"]
-for title in example_titles:
-    predikcija = predikcija_zanra(title)
-    print(f"Za naslov '{title}', predviđeni žanr(i) su: {predikcija}")
+example_titles = ["romantic",
+                  "adventure time",
+                   "money", 
+                   "mafia", 
+                   "space", 
+                   "war documentary", 
+                   "Toy Story", 
+                   "blood", 
+                   "love", 
+                   "relationship"]
 
+for title in example_titles:
+    seq = tokenizer.texts_to_sequences([title])
+    padded = pad_sequences(seq, maxlen=X.shape[1])
+    pred = rnn.predict(padded,verbose=0)
+    top_indices = pred[0].argsort()[-3:][::-1]
+    pred_genres = [mlb.classes_[i] for i in top_indices if pred[0][i] > 0.2]
+    
+    print(f"Za naslov '{title}', predviđeni žanr(i) su: {pred_genres}\n")
 
 # %% validacija
 predikcije = nm.predict(X_test)
