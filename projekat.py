@@ -13,8 +13,6 @@ from sklearn.preprocessing import MultiLabelBinarizer, StandardScaler
 from sklearn.model_selection import train_test_split
 from collections import Counter
 
-# %% generator vrednosti
-gpsv = np.random.default_rng(89)
 
 # %% random seed
 seed = 42
@@ -29,7 +27,7 @@ movies = movies[movies['genres'] != '(no genres listed)']
 movies['title'] = movies['title'].str.replace('"', '')
 
 print(movies.head())
-movies = movies.head(1555) 
+movies = movies.head(1500) 
 movies['genres'] = movies['genres'].apply(lambda x: x.split('|'))
 
 ml = MultiLabelBinarizer()
@@ -205,7 +203,7 @@ print(genres_count_movies)
 max_genre_count_movies = max(genres_count_movies.values())
 
 balanced_data_movies = []
-for genre in mlb.classes_:
+for genre in ml.classes_:
     samples = movies[movies[genre] == 1]
     count = len(samples)
     if count < max_genre_count_movies:
@@ -277,8 +275,8 @@ loss, accuracy = nm.evaluate(X_test, Y_test)
 #RNN trening sa tekstualnim podacima
 rnn = Sequential()
 rnn.add(Embedding(input_dim=5000, output_dim=64))  
-rnn.add(SpatialDropout1D(0.3))
-rnn.add(Bidirectional(LSTM(units=64, dropout=0.3, recurrent_dropout=0.3)))
+rnn.add(SpatialDropout1D(0.5))
+rnn.add(Bidirectional(LSTM(units=64, dropout=0.5, recurrent_dropout=0.5)))
 rnn.add(Dense(units=y.shape[1], activation='tanh'))
 
 rnn.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
@@ -288,7 +286,7 @@ rnn.summary()
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True)
 
-history = rnn.fit(x_train, y_train, epochs=10, batch_size=256, validation_data=(x_val, y_val), callbacks=[early_stopping])
+history = rnn.fit(x_train, y_train, epochs=10, batch_size=128, validation_data=(x_val, y_val), callbacks=[early_stopping])
 
 
 # %% evaluation 
