@@ -177,7 +177,7 @@ for genre in ml.classes_:
     samples = filmovi[filmovi[genre] == 1]
     count = len(samples)
     if count < max_br_zanrova_filmova:
-        samples = resample(samples, replace=True, n_samples=max_br_zanrova_filmova, random_state=42)
+        samples = resample(samples, replace=True, n_samples=max_br_zanrova_filmova, random_state=seed)
     balansirani_podaci.append(samples)
 
 balansirani_filmovi = pd.concat(balansirani_podaci).reset_index(drop=True)
