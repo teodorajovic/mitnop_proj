@@ -143,7 +143,7 @@ skup.dtypes
 skup = skup.reset_index(drop=True)
 
 # %% balansiranje podataka
-
+#balansiranje S
 zanrovi = [genre for sublist in skup['oznaka'] for genre in sublist]
 zanrovi_brojanje = Counter(zanrovi)
 print(zanrovi_brojanje)
@@ -164,36 +164,6 @@ zanrovi_brojanje_balansirani = Counter(zanrovi_balansirani)
 print("Distribucija žanrova nakon balansiranja:")
 print(zanrovi_brojanje_balansirani)
 
-
-# %% grafikoni distributivnosti zanrova
-plt.figure(figsize=(12, 6))
-plt.bar(zanrovi_brojanje.keys(), zanrovi_brojanje.values())
-plt.title('Distribucija žanrova pre balansiranja')
-plt.xlabel('Žanrovi')
-plt.ylabel('Broj uzoraka')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-
-
-plt.figure(figsize=(12, 6))
-plt.bar(zanrovi_brojanje_balansirani.keys(), zanrovi_brojanje_balansirani.values())
-plt.title('Distribucija žanrova nakon balansiranja')
-plt.xlabel('Žanrovi')
-plt.ylabel('Broj uzoraka')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-
-# Plot genre distribution to check for class imbalance
-br_zanr = filmovi.drop(columns=['title']).sum()
-
-plt.figure(figsize=(10, 8))
-br_zanr.plot(kind='bar')
-plt.title('Raspodela žanrova')
-plt.xlabel('Žanr')
-plt.ylabel('Broj filmova')
-plt.show()
 
 #balansiranje T
 zanrovi_filmova = [genre for sublist in filmovi.drop(columns=['title']).values for genre in sublist if genre == 1]
@@ -217,7 +187,39 @@ balanced_genres_count_movies = Counter(balanced_genres_movies)
 print("Distribucija žanrova nakon balansiranja:")
 print(balanced_genres_count_movies)
 
-# Plot balanced genre distribution for movies
+
+# %% grafikoni distributivnosti zanrova
+plt.figure(figsize=(12, 6))
+plt.bar(zanrovi_brojanje.keys(), zanrovi_brojanje.values())
+plt.title('Distribucija žanrova pre balansiranja')
+plt.xlabel('Žanrovi')
+plt.ylabel('Broj uzoraka')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+plt.figure(figsize=(12, 6))
+plt.bar(zanrovi_brojanje_balansirani.keys(), zanrovi_brojanje_balansirani.values())
+plt.title('Distribucija žanrova nakon balansiranja')
+plt.xlabel('Žanrovi')
+plt.ylabel('Broj uzoraka')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+
+br_zanr = filmovi.drop(columns=['title']).sum()
+
+plt.figure(figsize=(10, 8))
+br_zanr.plot(kind='bar')
+plt.title('Raspodela žanrova')
+plt.xlabel('Žanr')
+plt.ylabel('Broj filmova')
+plt.show()
+
+
 genre_counts_balanced_movies = balansirani_filmovi.drop(columns=['title']).sum()
 
 plt.figure(figsize=(10, 8))
@@ -289,7 +291,7 @@ zaustavljanje = EarlyStopping(monitor='val_loss', patience=2, restore_best_weigh
 history = rnn.fit(x_train, y_train, epochs=10, batch_size=128, validation_data=(x_val, y_val), callbacks=[zaustavljanje])
 
 
-# %% evaluation 
+# %% evaulacija
 plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
 plt.plot(hist.history['loss'], label='Training Loss')
@@ -338,7 +340,7 @@ pred_zanra = [ml.classes_[i] for i in top if pred[0][i] > 0.2]
 print(f"Za naslov '{naslov_filma}', predviđeni žanr(i) su: {pred_zanra}")
 
 
-# %% additional info
+# %% koriscenje
 
 #print(mlb.classes_)
 #print(movies.head())
